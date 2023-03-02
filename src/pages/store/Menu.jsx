@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import StarIcon from '@mui/icons-material/Stars';
 import LocalDelivery from '@mui/icons-material/LocalShipping';
+import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import {useParams} from 'react-router-dom';
 import GlobalStore, {RestaurantStore} from '../../helpers/store';
@@ -18,12 +19,13 @@ export const StoreHomePage = ({ place, ...props }) => {
 	const [loading, setLoadingState] = useState(true);
 	const [links, setLinks] = useState([]);
 	const [selectedCategory, setCategory] = useState("");
+	const [processing, setProcessingState] = useState(true);
 
-	async function getData(){
+	async function getData(cat){
 		let res, info, url = `${apiUrl}/menu/?place=${place}`;
 
-		if (Boolean(selectedCategory)){
-			url = `${url}&cat=${selectedCategory}`
+		if (cat){
+			url = `${apiUrl}/menu/?place=${place}&cat=${cat}`
 		}
 
 		try{
@@ -43,18 +45,22 @@ export const StoreHomePage = ({ place, ...props }) => {
 	}
 
 	async function changeCategory(_cat){
-		await notify("info", org)
-		if (!_cat === ""){
-			// await setCategory(cat);
-			// setTimeout(() => await getData(), 300)
+		await notify("info", _cat)
+		if (_cat === ""){
+			await setCategory(_cat);
+			return setTimeout(() => getData(), 300);
 		}
-		// getData()
+
+		if (_cat){
+			await setCategory(_cat);
+			return setTimeout(() => getData(_cat), 300)
+		}
 	}
 
 	useEffect(() => {
 		async function init(){
 			await getData();
-			console.log('PLace', restaurant)
+			console.log('Place', restaurant)
 		}
 		init();
 	}, [])
@@ -69,6 +75,15 @@ export const StoreHomePage = ({ place, ...props }) => {
 
 	return(
 		<Page sx={{ maxWidth: 1000, mx: 'auto' }}>
+
+
+			{/* processing && <CircularProgress 
+					// size={'large'}
+					color="orangered"
+					indeterminate
+				/>
+			*/}
+
 
 			<Box sx={{ my: 3, 
                 display: 'flex',
@@ -110,6 +125,7 @@ export const StoreHomePage = ({ place, ...props }) => {
                 <CategoryPill
                  onClick={() => changeCategory("")}
                  label={"Main Menu"}
+                 active={selectedCategory === ""}
                 />
         	}
 
@@ -119,13 +135,14 @@ export const StoreHomePage = ({ place, ...props }) => {
                      active={cat.name === selectedCategory}
                      onClick={() => changeCategory(cat.name)}
                      label={cat.name}
+                     active={selectedCategory === cat.name}
                     />
             	))
             }
             </Grid>
 
 			<Box className="titlebar" sx={{my: 4, px: 3}}>
-				<Typography sx={{ textAlign: 'center'}} className="title"> Our Menu </Typography>
+				<Typography sx={{ textAlign: 'center'}} className="title"> {selectedCategory ? selectedCategory : "Our Menu" } </Typography>
 			</Box>
 
 			

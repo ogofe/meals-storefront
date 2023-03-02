@@ -16,6 +16,8 @@ import Button from '@mui/material/Button';
 import Backdrop from '@mui/material/Backdrop';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import GoogleLogin from "react-google-login";
+import FacebookLogin from "react-facebook-login";
 
 import GlobalStore, {GlobalStoreProvider} from '../helpers/store';
 
@@ -44,6 +46,14 @@ export const LoginPage = ({ }) =>{
       `resizable=no,width=600,height=600`
     )
     return false;
+  }
+
+  function onSuccess(props){
+    console.log("Success:", props)
+  }
+
+  function onFailure(props){
+    console.log("Error:", props);
   }
 
   function loginWithFacebook(){
@@ -139,19 +149,28 @@ export const LoginPage = ({ }) =>{
       <Box className="" sx={{width: '95%', maxWidth: 500, mx: 'auto'}}>
         <Separator /> 
 
-        <StyledLinkButton icon={<GoogleIcon />} onClick={loginWithGoogle} variant="danger" sx={{width: '100%', my: 1}}>
-          <Typography sx={{
-            fontWeight: 600,
-            ml: 1,
-          }}> Login with Google </Typography>
-        </StyledLinkButton>
-
-        <StyledLinkButton icon={<FacebookIcon />} onClick={loginWithFacebook} variant="primary" sx={{width: '100%', my: 1}}>
-          <Typography sx={{
-            fontWeight: 600,
-            ml: 1,
-          }}> Login with Facebook </Typography>
-        </StyledLinkButton>
+        <GoogleLogin
+          className={'google-login-btn'}
+          // style={{
+          //   width: '100%',
+          //   fontSize: '16px !important'
+          // }}
+          clientId="302344337687-8tfpp6uvn859q9ugjauarncbno9k9ak3.apps.googleusercontent.com"
+          buttonText="Login with Google"
+          onSuccess={onSuccess}
+          onFailure={onFailure}
+          cookiePolicy={"single_host_origin"}
+          // clientSecret={"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"}
+        />
+{/*
+        <FacebookLogin
+          appId="YOUR_APP_ID"
+          autoLoad={false}
+          fields="name"
+          onClick={() => {}}
+          callback={onSuccess}
+          onFailure={onFailure}
+        />*/}
 
       </Box>
       

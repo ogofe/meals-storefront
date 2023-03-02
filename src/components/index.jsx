@@ -152,10 +152,10 @@ export const StyledLinkButton = ({ style, variant='primary', href, icon, ...prop
 }
 
 
-export function CategoryPill({ label, icon, ...props }){
+export function CategoryPill({ label, icon, active, ...props }){
   return(
     <IconButton {...props} sx={{
-        background: '#f4f4f4',
+        background: active ? '#f2a22ad1' : '#f4f4f4',
         fontWeight: '800 !important',
         borderRadius: '50px',
         minWidth: 'max-content',
