@@ -19,10 +19,12 @@
       "sizes": "512x512"
     }
   ],
+  "id": "/",
   "start_url": ".",
   "display": "standalone",
-  "serviceWorker": "../src/serviceWorker.js",
+  "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#ffffff",
-  "permissions": []
+  "serviceWorker" : "./sw.js",
+  "permissions": [ ]
 }

@@ -18,6 +18,8 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 // pages import 
 import GlobalStore, {GlobalStoreProvider} from '../helpers/store';
+import GoogleLogin from 'react-google-login';
+import ReactFacebookLogin from 'react-facebook-login';
 
 
 export const LoginPage = ({ }) =>{
@@ -40,6 +42,15 @@ export const LoginPage = ({ }) =>{
 
   function loginWithFacebook(){
     //const graphUrl = "";
+  }
+
+  
+  function onSuccess(props){
+    console.log("Success:", props)
+  }
+
+  function onFailure(props){
+    console.log("Error:", props);
   }
 
 
@@ -67,12 +78,7 @@ export const LoginPage = ({ }) =>{
           </Typography>
           
           <Typography component="h1" sx={{opacity: .5}} className="">
-            Already have an account? <Link className="hotlink" to={() => {
-              if (nextUrl){
-                return `/login/?rdr_next=${nextUrl}`
-              }
-              return `/login/`
-            }}> Login Here </Link>
+            Already have an account? <Link className="hotlink" to={nextUrl ? `/login/?rdr_next=${nextUrl}` : `/login/`}> Login Here </Link>
           </Typography>
         </Box>
       </Box>
@@ -99,22 +105,29 @@ export const LoginPage = ({ }) =>{
         </Box>
       </Box>
 
-      <Box className="" sx={{width: '95%', maxWidth: 500, mx: 'auto'}}>
+      <Box className="" sx={{width: '95%', maxWidth: 500, mx: 'auto', mb: 5}}>
         <Separator /> 
 
-        <StyledLinkButton icon={<GoogleIcon />} onClick={submitCredentials} variant="danger" sx={{width: '100%', my: 1}}>
-          <Typography sx={{
-            fontWeight: 600,
-            ml: 1,
-          }}> Sign up with Google </Typography>
-        </StyledLinkButton>
+        <GoogleLogin
+          className={'google-login-btn'}
+          clientId="302344337687-8tfpp6uvn859q9ugjauarncbno9k9ak3.apps.googleusercontent.com"
+          buttonText="Login with Google"
+          onSuccess={onSuccess}
+          onFailure={onFailure}
+          cookiePolicy={"single_host_origin"}
+          clientSecret={"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"}
+        />
 
-        <StyledLinkButton icon={<FacebookIcon />} onClick={submitCredentials} variant="primary" sx={{width: '100%', my: 1}}>
-          <Typography sx={{
-            fontWeight: 600,
-            ml: 1,
-          }}> Sign up with Facebook </Typography>
-        </StyledLinkButton>
+        <ReactFacebookLogin
+          icon={<FacebookIcon />}
+          appId="859902618420452"
+          cssClass="facebook-login-btn"
+          autoLoad={false}
+          fields="name"
+          onClick={() => {}}
+          callback={onSuccess}
+          onFailure={onFailure}
+        />
 
       </Box>
       

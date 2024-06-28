@@ -2,53 +2,64 @@ import React, {Fragment, useEffect, useState, useContext} from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import StarIcon from '@mui/icons-material/Stars';
-import LocalDelivery from '@mui/icons-material/LocalShipping';
+import CartIcon from '@mui/icons-material/AddShoppingCart';
 import Typography from '@mui/material/Typography';
 import {useParams} from 'react-router-dom';
-import GlobalStore from '../../helpers/store';
+import GlobalStore, { RestaurantStore } from '../../helpers/store';
 import {DashboardLoader} from '../../components/loaders';
 import {Page, ProductCard, BackButton, StyledButton as Button} from '../../components/index';
+import {normalizeDigits} from '../../utils'
+import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, Badge, Card, Chip, Input, Radio, RadioGroup, Stack } from '@mui/material';
+import { ArrowDownward } from '@mui/icons-material';
 
 
 export const ItemDetailPage = ({ place, ...props }) => {
-	const { apiUrl, getUserData, theme, notify} = useContext(GlobalStore);
+	const { getUserData, notify} = useContext(GlobalStore);
+	const { axios, } = useContext(RestaurantStore);
 	const [item, setItemData] = useState(null);
 	const [relatedItems, setRelatedItems] = useState(null);
+	const [customizations, setCustomizations] = useState({});
 	const [cartQty, setCartQty] = useState(1);
 	const [loading, setLoadingState] = useState(true);
 	const { user, token } = getUserData();
     const {itemId} = useParams()
 
 	async function addToCart(){
-		let res, data;
-
-		res = await fetch(`${apiUrl}/cart/?place=${place}`, {
-			method: 'post',
-			headers: {'Authorization': `Token ${token}`, 'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				action: 'add-to-cart',
-				item: item.slug,
-				qty: cartQty,
-			})
-		});
-
-		data = await res.json();
-		if (res.ok){
+		const payload = JSON.stringify({
+			action: 'add-to-cart',
+			item: item.slug,
+			qty: cartQty,
+		})
+		const res = await axios.post(`/cart/`, payload)
+		if (res.status === 200){
 			notify('success', "Item added to cart")
 		}else{
-			notify('error', data.message)
+			notify('error', res.data.message)
 		}
 	}
 
+	// let custom = {
+	// 	'meat type': 'Beef',
+	// 	''
+	// }
 
+	function changeCustomization({ name, choice }){
+		setCustomizations({
+			...customizations,
+			...{name : choice}
+		})
+	}
 
 	async function getData(){
 		let res, data;
 
 		try{
-			res = await fetch(`${apiUrl}/menu/item/?place=${place}&itemId=${itemId}`);
-			item = await res.json()
-			if (res.ok){
+			res = await axios.get(`/menu/item/?itemId=${itemId}`);
+			data = await res.data
+
+			console.log("ITEM,", data)
+
+			if (res.status === 200){
 				setItemData(data.item)
 				setRelatedItems(data.related_items)
 				notify('success', 'Got data')
@@ -80,104 +91,152 @@ export const ItemDetailPage = ({ place, ...props }) => {
 
 	return(
 		<Page>
-			<Box className="" sx={{maxWidth: 1000, mx:'auto', pt: 3}}>
-            <BackButton path={`/${place}/menu/`} />
+			<Box className="" sx={{maxWidth: 1000, mx:'auto'}}>
+            <BackButton path={`/menu/`} />
 			
-			<Box className="" sx={{my: 4, py: 3, borderRadius: 1, backgroundColor: '#fff'}}>
+			<Box className="" sx={{ py: 3, backgroundColor: '#fff'}}>
                 <Box>
-                    <Box className="row" sx={{alignItems: 'center !important' }}>
-                        <Box className="col-sm-6 col-md-5 col-lg-4" sx={{px: 0, pb: 3}}>
-                            <Box sx={{maxWidth: '450px', p: 1.5}}>
-                                <img src={item.image} style={{width: '100%', borderRadius: '5px'}} />
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={4} lg={4} sx={{px: 0, pb: 1.5}}>
+                            <Box>
+								<Box sx={{maxWidth: '450px'}}>
+									<img alt={`${item?.name}`} src={item.image.url} style={{width: '100%', borderRadius: '5px'}} />
+								</Box>
                             </Box>
-                        </Box>
+                        </Grid>
 
-                        <Box className="col-sm-6 col-md-6 col-lg-7">
-				          <Box sx={{px: 2, py: 2}}>
-				            <Typography 
-				                sx={{
-				                	 fontSize: 25,
-				                	 fontWeight: 600,
-				                	}}
-				                className="title"
-				            > {item?.name} </Typography>
+                        <Grid item xs={12} md={8} lg={8}>
+							<Box>
+								<Typography 
+									sx={{
+										fontSize: 25,
+										fontWeight: 600,
+										}}
+									className="title"
+								> {item?.name} </Typography>
 
-				            <Typography 
-				                sx={{
-				                	 fontSize: 17.5,
-				                	 fontWeight: 600,
-				                	 my: 1,
-				                	}}
-				                className="title"
-				            > ${item?.price} </Typography>
+								<Box className='d-flex' my={2} alignItems={'center'} justifyContent={'safe start'}>
+									<Typography 
+										sx={{
+											fontSize: 17.5,
+											fontWeight: 600,
+											my: 1, mr: 3
+											}}
+										className="title"
+									> ${normalizeDigits(item?.price)} </Typography>
+									<Chip px={4} py={2} color='success' label={item?.category} />
+								</Box>
+							</Box>
 
-				            <Typography 
-				                sx={{
-				                	 fontSize: 17,
-				                	 my: 2
-				                	}}
-				                className=""
-				            > {item?.about} </Typography>
-                            
-                             <Typography 
-				                sx={{
-				                	 fontSize: 17,
-				                	 my: 2,
-				                	 fontWeight: 600,
-				                	 opacity: .7
-				                	}}
-				                className=""
-				            > Category: {item?.category} </Typography>
+							<Typography 
+								className="item-description"
+								dangerouslySetInnerHTML={{ __html: item?.about || "No description for this item"}}
+							/>
+                        </Grid>
+                    </Grid>
+
+					{
+						item?.custom_choices?.length > 0 && 
+						<Box sx={{ fontSize: 17, my: 2, borderRadius: 1.5, }}>
+
+							<Grid container gap={2} overflowX={'auto'} py={3}>
+							{
+								item?.custom_choices?.map(({ name, choices, required, default_choice}, idx) => 
+									<Grid  my={1.2} borderBottom={'1px solid gray'} py={2} key={idx} item xs={12} sm={5} md={4}>
+										
+										<Grid container>
+											<Typography mb={2} fontWeight={'600'}> {name} </Typography>
+											{required && <Chip label={"Required"} />}
+										</Grid>
+
+										<Stack>
+											{choices.map((choice, idx) => 
+												<RadioGroup name={name}>
+													<Box className='d-flex' alignItems={'center'} gap={1} mb={0.5}>
+														<Radio
+															sx={{height:'20px', width: '20px' }}
+															name={name}
+															size='small'
+															value={choice.name}
+															onChange={e => changeCustomization({ name: name, choice: choice.name})}
+														/>
+														<Typography className='d-flex' flex={1} key={idx}>
+															<span>{choice.name}</span> 
+															<span>{choice.price > 0 ? `+${normalizeDigits(choice?.price)}` : 'Free'}</span>
+														</Typography>
+													</Box>
+												</RadioGroup>
+											)}
+										</Stack>
+									</Grid>
+								)
+							}
+							</Grid>
+						</Box>
+					}
 
 
-				            <Box>
-                                <input style={{
-                                	width: 80, marginRight: 10,
-                                	display: 'inline-flex'
-                                 }} 
-                                 className="input" 
-                                 type="number" 
-                                 value={cartQty}
-                                 onInput={e => setCartQty(e.target.value)}
-                                 min="1" 
-                                 required 
-                                />
+					<Grid container gap={2}>
+						<Grid item xs={12} sm={5} md={6}>
+							<Input disableUnderline
+								sx={{
+									py: 0.5,
+									px: 2,
+									width: '100%',
+									marginRight: 5,
+									maxWidth: 400,
+									display: 'inline-flex'
+								}}
+								className="input" 
+								type="number"
+								unselectable 
+								value={cartQty}
+								onInput={e => setCartQty(e.target.value)}
+								required
+								min={1}
+							/>
+						</Grid>						
 
-                                <Button variant="warning" onClick={addToCart}> <Typography> Add to Cart </Typography> </Button>
-				            </Box>
-                        </Box>
-                      </Box>
-                    </Box>
+						<Grid item xs={12} sm={5} md={6}>
+							<Button variant="warning" sx={{ width: '100%'}} icon={<CartIcon sx={{mr: 1,}} />} onClick={addToCart}> <Typography> Add to Cart </Typography> </Button>
+						</Grid>
+					</Grid>
+					
 
                 </Box>
 			</Box>
 
-			<Box sx={{ my: 3}}>
-				            <Typography 
-				                sx={{
-				                	 fontSize: 22,
-				                	 fontWeight: 600,
-				                	 textAlign: 'center'
-				                	}}
-				                className="title"
-				            > Related Items </Typography>
-			</Box>
-
-			<Grid
-			    container wrap="wrap"
-			    className="d-flex"
-			    sx={{ 
-			        justifyContent: 'space-around',
-			        alignItems: 'flex-start',
-			        py: 3
-			    }}
-			>
 			{
-				relatedItems?.map(item => (
-					<ProductCard key={item.id} item={item} />
-				))
+				relatedItems?.length > 0 &&
+				<Fragment>
+					<Box sx={{ my: 3}}>
+						<Typography 
+							sx={{
+									fontSize: 22,
+									fontWeight: 600,
+									textAlign: 'center'
+								}}
+							className="title"
+						> Related Items </Typography>
+					</Box>
+
+					<Grid
+						container wrap="wrap"
+						className="d-flex"
+						sx={{ 
+							justifyContent: 'space-around',
+							alignItems: 'flex-start',
+							py: 3
+						}}
+					>
+					{
+						relatedItems?.map(item => (
+							<ProductCard key={item.id} item={item} />
+						))
+					}
+					</Grid>
+				</Fragment>
 			}
-			</Grid>
 			</Box>
 		</Page>
 	)

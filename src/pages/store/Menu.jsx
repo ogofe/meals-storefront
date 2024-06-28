@@ -1,41 +1,46 @@
-import React, {Fragment, useEffect, useState, useContext} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import StarIcon from '@mui/icons-material/Stars';
-import LocalDelivery from '@mui/icons-material/LocalShipping';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import {useParams} from 'react-router-dom';
 import GlobalStore, {RestaurantStore} from '../../helpers/store';
-import {DashboardLoader} from '../../components/loaders';
-import {Page, ProductCard, CategoryPill, TabNavigation} from '../../components/index';
-// import FoodIcon from 'food-icons';
+import {MenuLoader} from '../../components/loaders';
+import {Page, ProductCard, CategoryPill, TabNavigation, MenuHeader} from '../../components/index';
+import { IconButton, Stack, useMediaQuery } from '@mui/material';
+import { ListAlt } from '@mui/icons-material';
 
 
-export const StoreHomePage = ({ place, ...props }) => {
-	const {token, apiUrl, org, theme, notify} = useContext(GlobalStore);
+export const 	StoreHomePage = ({ place, ...props }) => {
+	const {notify, getUserData} = useContext(GlobalStore);
 	const [data, setData] = useState(null);
-	const {restaurant} = useContext(RestaurantStore);
+	const [menu, setMenu] = useState(null);
+	const {restaurant, axios} = useContext(RestaurantStore);
 	const [loading, setLoadingState] = useState(true);
 	const [links, setLinks] = useState([]);
 	const [selectedCategory, setCategory] = useState("");
 	const [processing, setProcessingState] = useState(true);
+	const isMoblieDevice =  useMediaQuery('(max-width: 385px)');
 
 	async function getData(cat){
-		let res, info, url = `${apiUrl}/menu/?place=${place}`;
-
+		let params;
 		if (cat){
-			url = `${apiUrl}/menu/?place=${place}&cat=${cat}`
+			params = {
+				cat:cat
+			}
 		}
 
 		try{
-			res = await fetch(url);
-			info = await res.json()
-			if (res.ok){
-				setData(info.data)
+			const res = await axios.get('/menu/', {
+				params
+			});
+			
+			if (res.status === 200){
+				setData(res.data.data)
+				setMenu(res.data.data.products)
 				// notify('success', 'Got data')
 			}else{
-				// notify('error', 'Something went wrong!')
+				notify('error', 'Something went wrong!')
 			}
 			setTimeout(() => setLoadingState(false), 1200);
 		}catch(err){
@@ -44,126 +49,99 @@ export const StoreHomePage = ({ place, ...props }) => {
 		}
 	}
 
+	function filterMenu(cat){		
+		let _filtered = Array.from(data.products)
+		_filtered = _filtered.filter(( item ) => item.category === cat)
+		setMenu(_filtered)
+	}
+	
 	async function changeCategory(_cat){
-		await notify("info", _cat)
 		if (_cat === ""){
 			await setCategory(_cat);
-			return setTimeout(() => getData(), 300);
+			return setMenu(data.products)
 		}
 
 		if (_cat){
 			await setCategory(_cat);
-			return setTimeout(() => getData(_cat), 300)
+			return filterMenu(_cat)
 		}
 	}
 
 	useEffect(() => {
 		async function init(){
 			await getData();
-			console.log('Place', restaurant)
 		}
 		init();
 	}, [])
 
 	if (loading){
 		return(
-			<Page>
-				<DashboardLoader loading={loading} />
+			<Page sx={{ maxWidth: 1000, mx: 'auto' }}>
+				<MenuLoader loading={loading} />
 			</Page>
 		)
 	}
 
 	return(
-		<Page sx={{ maxWidth: 1000, mx: 'auto' }}>
+		<Page sx={{ px: '0px !important', pt: "0px !important", pb: 5}}>
 
-
-			{/* processing && <CircularProgress 
-					// size={'large'}
+			{ loading && <CircularProgress
 					color="orangered"
 					indeterminate
 				/>
-			*/}
-
-
-			<Box sx={{ my: 3, 
-                display: 'flex',
-                justifyContent: 'flex-end',
-                flexDirection: 'row-reverse',
-                alignItems: 'center',
-             }}>
-    			<Typography sx={{
-                    fontSize: "20px",
-                    fontWeight: 800,
-                    fontFamily: "Poppins",
-                    padding: 2,
-                }}> {restaurant?.name} </Typography>
-
-				<Box sx={{
-					width: 100,
-					height: 100,
-					borderRadius: 30,
-					border: '3px solid sandybrown',
-					p: 0.25
-				}}>
-					<img src={restaurant?.logo} style={{
-						borderRadius: '300px',
-						width: '100%', 
-						height: '100%',
-					}} />
-				</Box>
-
-			</Box>
-
-
-			<Box className="titlebar" sx={{my: 3, px: 3}}>
-				<Typography sx={{textAlign: 'left'}} className="title"> Categories </Typography>
-			</Box>
-
-            <Grid className="d-flex" sx={{ alignItems: 'center', overflowX: 'auto', py: 2}}>
-            { selectedCategory && (selectedCategory !== "") && 
-
-                <CategoryPill
-                 onClick={() => changeCategory("")}
-                 label={"Main Menu"}
-                 active={selectedCategory === ""}
-                />
-        	}
-
-            {
-            	data?.categories?.map(cat => (
-                    <CategoryPill
-                     active={cat.name === selectedCategory}
-                     onClick={() => changeCategory(cat.name)}
-                     label={cat.name}
-                     active={selectedCategory === cat.name}
-                    />
-            	))
-            }
-            </Grid>
-
-			<Box className="titlebar" sx={{my: 4, px: 3}}>
-				<Typography sx={{ textAlign: 'center'}} className="title"> {selectedCategory ? selectedCategory : "Our Menu" } </Typography>
-			</Box>
-
-			
-			<Grid
-			    container wrap="wrap"
-			    className="d-flex"
-			    sx={{ 
-			        justifyContent: 'space-around',
-			        alignItems: 'flex-start',
-			        py: 3
-			    }}
-			>
-			{
-				data?.products?.map(item => (
-					<ProductCard key={item.id} item={item} />
-				))
 			}
+			<MenuHeader />
+
+			<Grid container wrap='nowrap' className="titlebar" sx={{px: 0, bgcolor: '#efefef'}}>
+				<IconButton disableRipple sx={{textAlign: 'left'}} className="title"><ListAlt /> </IconButton>
+
+				<Grid flex={1} container justifyContent={'flex-start'} flexWrap={'nowrap'} className="d-flex hide-scrollbar" sx={{ alignItems: 'center', overflowX: 'auto'}}>
+					<CategoryPill
+						onClick={() => changeCategory("")}
+						label={"All Items"}
+						active={selectedCategory === ""}
+					/>
+
+					{
+						data?.categories?.map(cat => (
+							<CategoryPill
+							active={cat.name === selectedCategory}
+							onClick={() => changeCategory(cat.name)}
+							label={cat.name}
+							/>
+						))
+					}
+				</Grid>
 			</Grid>
+
+			<Stack sx={{px: 2 }}>
+				<Box className="titlebar" sx={{mt: 4,}}>
+					<Typography sx={{ textAlign: 'center'}} className="title"> {selectedCategory ? selectedCategory : "Our Menu" } </Typography>
+				</Box>
+				
+				<Grid
+					container wrap="wrap"
+					spacing={2}
+					justifyContent={'space-between'}
+					sx={{
+						alignItems: isMoblieDevice ? 'center' : 'center',
+						py: 3
+					}}
+				>
+				{
+					menu?.map(item => (
+						<Grid item xs={12} sm={12} md={6} lg={4} justifyContent={'center'} display={'flex'}>
+							<ProductCard key={item.id} item={item} />
+						</Grid>
+					))
+				}
+				</Grid>
+			</Stack>
+
 		</Page>
 	)
 }
 
 
 export default StoreHomePage;
+

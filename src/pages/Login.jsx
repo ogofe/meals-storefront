@@ -4,24 +4,16 @@ import {
   useSearchParams,
   useNavigate,
 } from 'react-router-dom';
-import { Navbar, Sidebar } from '../components/nav';
-import { StyledButton, Separator, StyledLinkButton } from '../components';
+import { StyledButton, Separator } from '../components';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import GoogleIcon from '@mui/icons-material/Google';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import Backdrop from '@mui/material/Backdrop';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import GoogleLogin from "react-google-login";
 import FacebookLogin from "react-facebook-login";
 
-import GlobalStore, {GlobalStoreProvider} from '../helpers/store';
+import GlobalStore from '../helpers/store';
 
-const {sessionStorage, localStorage} = window;
+const {localStorage} = window;
 
 export const LoginPage = ({ }) =>{
   const redirect = useNavigate();
@@ -85,9 +77,8 @@ export const LoginPage = ({ }) =>{
       data = await res.json();
 
       if (res.ok){
-
         setUserProfile(data)
-        sessionStorage.setItem('auth-user', JSON.stringify(data))
+        localStorage.setItem('auth-user', JSON.stringify(data))
         notify('info', 'Successfully Logged In!')
         return setTimeout(() => (document.location.href = `${nextUrl}`), 1200);
       }
@@ -114,12 +105,7 @@ export const LoginPage = ({ }) =>{
           </Typography>
           
           <Typography component="h1" sx={{opacity: .5}} className="">
-            Don't have an account? <Link className="hotlink" to={() => {
-              if (nextUrl){
-                return `/signup/?rdr_next=${nextUrl}`
-              }
-              return `/signup/`
-            }}> Signup Here </Link>
+            Don't have an account? <Link className="hotlink" to={nextUrl ? `/signup/?rdr_next=${nextUrl}` : `/signup/`}> Signup Here </Link>
           </Typography>
         </Box>
       </Box>
@@ -146,31 +132,29 @@ export const LoginPage = ({ }) =>{
         </Box>
       </Box>
 
-      <Box className="" sx={{width: '95%', maxWidth: 500, mx: 'auto'}}>
+      <Box className="" sx={{width: '95%', maxWidth: 500, mx: 'auto', mb: 5}}>
         <Separator /> 
 
         <GoogleLogin
           className={'google-login-btn'}
-          // style={{
-          //   width: '100%',
-          //   fontSize: '16px !important'
-          // }}
           clientId="302344337687-8tfpp6uvn859q9ugjauarncbno9k9ak3.apps.googleusercontent.com"
           buttonText="Login with Google"
           onSuccess={onSuccess}
           onFailure={onFailure}
           cookiePolicy={"single_host_origin"}
-          // clientSecret={"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"}
+          clientSecret={"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"}
         />
-{/*
+        
         <FacebookLogin
-          appId="YOUR_APP_ID"
+          icon={<FacebookIcon />}
+          appId="859902618420452"
+          cssClass="facebook-login-btn"
           autoLoad={false}
           fields="name"
           onClick={() => {}}
           callback={onSuccess}
           onFailure={onFailure}
-        />*/}
+        />
 
       </Box>
       

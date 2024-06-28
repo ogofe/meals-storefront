@@ -2,7 +2,8 @@ import React, {useContext, useState} from 'react';
 // import {connect} from 'socket.io-client';
 
 import Box from '@mui/material/Box';
-import LinearProgress from '@mui/material/LinearProgress';
+import MenuIcon from '@mui/icons-material/Menu';
+import CashIcon from '@mui/icons-material/MonetizationOn';
 
 import CartIcon from '@mui/icons-material/ShoppingCart';
 import StarIcon from '@mui/icons-material/Star';
@@ -25,6 +26,7 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import CancelIcon from '@mui/icons-material/Cancel';
+import CalendarIcon from '@mui/icons-material/CalendarMonth';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { visuallyHidden } from '@mui/utils';
 import Alert from '@mui/material/Alert';
@@ -33,8 +35,145 @@ import AlertTitle from '@mui/material/AlertTitle';
 import Rating from '@mui/material/Rating';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
-// import { Bar } from 'react-chartjs-2';
 import GlobalStore, {RestaurantStore} from '../helpers/store';
+import { Badge, Icon, TextField, Button, Stack, Chip } from '@mui/material';
+import ErrorIcon from '@mui/icons-material/WarningAmber'
+import { redirect } from '../helpers/utils';
+
+const theme = {
+  accent_color: '#ff911b',
+  bg_color: '#000',
+  // font: 'Poppins',
+  font: 'Roboto',
+  text_color: '#fff'
+}
+
+
+export const MenuHeader = ({ }) => {
+	const {restaurant, axios} = useContext(RestaurantStore);
+	const isMoblieDevice =  useMediaQuery('(max-width: 385px)');
+
+  return(
+    <Box className={`menu-header ${isMoblieDevice && 'mobile-device'}`} 
+				sx={{
+					py: 10,
+					px: 4,
+					display: 'flex',
+					justifyContent: 'flex-end',
+					flexWrap: 'wrap-reverse',
+					flexDirection: 'row-reverse',
+					alignItems: 'center',
+					bgcolor: theme.bg_color,
+				}}
+			>
+				<Typography sx={{
+					fontSize: "20px",
+					fontWeight: 800,
+					fontFamily: theme.font,
+					padding: 2,
+          color: theme.text_color
+				}}> {restaurant?.name} </Typography>
+
+				<Box className='image-wrapper'  sx={{
+					width: 150,
+					height: 150,
+					borderRadius: 30,
+					border: '3px solid sandybrown',
+					p: 0.25
+				}}>
+					<img alt='' src={restaurant?.logo_url} style={{
+						borderRadius: '300px',
+						width: '100%', 
+						height: '100%',
+					}} />
+				</Box>
+
+			</Box>
+  )
+}
+
+
+
+export const ErrorUI = (error) => {
+  const [message, setMessage] = useState(JSON.stringify(error));
+  const {onLine} = window.navigator
+
+  const handleRefresh = () => {
+    if (!onLine){
+      setTimeout(() => document.location.reload(), 1800)
+      return setMessage("Reloading Page <br> Please Wait... ");
+    }else{
+      setTimeout(() => document.location.reload(), 1800)
+      return setMessage("You are currently offline. <br> Please connect to the internet to continue.");
+    }
+  };
+
+  return (
+    <Box display={'flex'} justifyContent={'center'} alignItems={'center'} style={{ height: '100vh'}}>
+      <Stack style={{ textAlign: "center", py: 4, }}>
+        <Box container>
+          <ErrorIcon sx={{height: '12rem', width: '12rem'}} color={'warning'} />  
+        </Box>
+        
+        <Box sx={{px: 2}}>
+          <Typography
+            fullwidth
+            style={{ marginTop: 10, fontSize: '16px' }}
+            dangerouslySetInnerHTML={{__html: message}}
+          ></Typography>
+        </Box>
+
+        <Grid container sx={{my: 3}} gap={2}>
+          <Grid item>
+            <Button disableElevation variant="contained" color="primary" onClick={handleRefresh}>
+              Refresh Page
+            </Button>
+          </Grid>
+
+          <Grid item>
+            <Button disableElevation variant="contained" color="primary" onClick={() => redirect('/')}>
+              Back to Menu
+            </Button>
+          </Grid>
+
+        </Grid>
+      </Stack>
+    </Box>
+  );
+};
+
+
+export class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  } 
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error: error };
+  }
+
+  componentDidCatch(error, info) {
+    // Example "componentStack":
+    //   in ComponentThatThrows (created by App)
+    //   in ErrorBoundary (created by App)
+    //   in div (created by App)
+    //   in App
+    console.log(error, info.componentStack);
+    // this.setState({ ...this.state, error:  error })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return (
+        <ErrorUI error={this.state.error} />
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 
 export const BackButton = ({ path, ...props }) => {
@@ -51,9 +190,11 @@ export const BackButton = ({ path, ...props }) => {
   )
 }
 
+
 export function Page({children, ...props}){
   return <Box className="page" {...props}>{children}</Box>
 }
+
 
 export function BasicRating() {
   const [value, setValue] = React.useState(2);
@@ -154,86 +295,106 @@ export const StyledLinkButton = ({ style, variant='primary', href, icon, ...prop
 
 export function CategoryPill({ label, icon, active, ...props }){
   return(
-    <IconButton {...props} sx={{
-        background: active ? '#f2a22ad1' : '#f4f4f4',
+    <Button disableRipple {...props} sx={{
+        background: active ? 'rgba(189, 174, 152, 0.82)' : 'transparent',
+        color: active ? '#fff' : '#000',
         fontWeight: '800 !important',
-        borderRadius: '50px',
+        borderRadius: 0,
+        borderBottom: '4px solid',
         minWidth: 'max-content',
-        px: 2.5, py: 1.5, m: 1,
+        borderColor: active ? 'rgba(239, 109, 23, 0.82)' : '#000',
+        px: 1.5, py: 1,
         cursor: 'pointer',
         ':hover': {
-          opacity: .7,
-          transition: .3,
-          background: 'lightgrey'
+          backgroundColor: 'rgba(189, 174, 152, 0.82)',
         }
       }}>
         {icon && icon}
-        <Typography sx={{ color: '#000'}}> {label} </Typography>
-    </IconButton>
+        <Typography sx={{ color: 'inherit'}}> {label} </Typography>
+    </Button>
   )
 }
 
 
 export function ProductCard({ item, ...props }){
-  const {place} = useContext(RestaurantStore);
-  const {getUserData, notify, apiUrl} = useContext(GlobalStore);
-  const { user, token } = getUserData();
+  const {place, restaurant, axios, requestNotificationPerm, nativeNotify} = useContext(RestaurantStore);
+  const {getUserData, notify, apiUrl, updateManifest} = useContext(GlobalStore);
+  const { token } = getUserData();
 
   async function addToCart(){
-    let res, data;
-    try{
-      res = await fetch(`${apiUrl}/cart/?place=${place}`, {
-        method: 'post',
-        headers: {'Authorization': `Token ${token}`, 'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          action: 'add-to-cart',
-          item: item.slug,
-          qty: 1,
-        })
-      });
-      data = await res.json();
+    let data, installed = false;
 
-      if (res.ok){
-        notify('success', "Item added to cart")
+    if (window.localStorage.getItem(`${restaurant.slug}-shago-installed`) === "true"){
+      installed = true
+    }
+
+    try{
+      const payload = JSON.stringify({
+        action: 'add-to-cart',
+        item: item.slug,
+        qty: 1,
+      })
+      const res = await axios.post(`/cart/`, payload);
+
+      if (res.status === 200){
+        nativeNotify('Success', "Item added to cart")
       }else{
         notify('error', data.message)
       }
     }catch(err){
       notify('error', err.message, 90000)
     }
+
+
+    if (!installed){
+      updateManifest({
+        name: `${restaurant.name}`,
+        short_name: `${restaurant.name}`,
+        description: `Order your favorite meals from ${restaurant.name} - Powered by By Shago Meals`,
+        icons: [
+          {
+          src: restaurant.logo,
+          sizes: "192x192",
+          type: "image/png"
+          }
+        ],
+        start_url: "."
+      })
+    }
   }
   
   return (
-    <Box sx={{my: 2.5}} className="product-card">
-      <Box className="product-card-image">
-        <Link to={`/${place}/menu/${item.slug}/`} className="">
-          <img className="image" src={item?.image?.url} />
-        </Link>
-      </Box>
+    <Box  className="product-card">
+      <Grid container justifyContent={'space-between'}>
+        <Grid item sx={{p: 1}} flex={1}>
+          <Typography component="h6" className="product-title" sx={{my: .25}}> {item.name} </Typography>
 
-      <Box sx={{p: 1}}>
-        <Typography component="h6" className="product-title" sx={{my: .25}}> {item.name} </Typography>
+          <Grid container alignItems={'center'} justifyContent={'flex-start'}> 
+            <Typography sx={{fontWeight: 600, mr: 1.25 }} className="product-price"> ₦{normalizeDigits(item.price)} </Typography>            
 
-        <Grid container className="d-flex" sx={{ mt: 1, alignItems: 'start'}}>
-          <Typography sx={{fontWeight: 600 }} className="product-price"> ₦{normalizeDigits(item.price)} </Typography>
-
-          <span style={{fontWeight: 600, opacity: .6 }}> . </span>
-
-          <Typography sx={{ fontWeight: 600 }} className="product-category"> {item.category} </Typography>
+            <Box className="d-flex" sx={{alignItems: 'center'}}>
+              <StarIcon sx={{fontSize: 15, mr: .25, color: 'orangered'}} /> 
+              <Typography sx={{ color: 'orangered', fontWeight: 600 }} > {item.rating} </Typography>
+            </Box>
+          </Grid>
           
-          <span style={{fontWeight: 600, opacity: .6 }}> . </span>
+          <Chip sx={{ fontWeight: 600, borderRadius: '2px', bgcolor: theme.accent_color }} className="product-category" label={item.category} />
 
-          <Box className="d-flex" sx={{alignItems: 'center'}}>
-           <StarIcon sx={{fontSize: 15, mr: .25, color: 'orangered'}} /> 
-           <Typography sx={{ color: 'orangered', fontWeight: 600 }} > {item.rating} </Typography>
-          </Box>
         </Grid>
 
-        <StyledButton onClick={() => addToCart()} icon={<CartIcon sx={{mr: 1.25}} />} sx={{ fontSize: 13, mt: 3, fontWeight: 600, width: '100%'}} variant="warning"> Add to Cart </StyledButton>
-      </Box>
+        <Grid item className="product-card-image">
+          <Link to={`/menu/${item.slug}/`} className="">
+            <img alt="" className="image" src={item?.image?.url} />
+          </Link>
+        </Grid>
+      </Grid>
+
+      <StyledButton onClick={() => addToCart()} icon={<CartIcon sx={{mr: 1.25}} />} sx={{ fontSize: 13, mt: .25, fontWeight: 600, width: '100%'}} variant="warning"> Add to Cart </StyledButton>
+
     </Box>
   )
 }
+
 
 export function OrderListItem({ item, onChange, removable, ...props }){
   const {place} = useContext(RestaurantStore);
@@ -268,42 +429,93 @@ export function OrderListItem({ item, onChange, removable, ...props }){
   }
 
   return(
-    <TableRow key={props?.key || null}>
+    <TableRow sx={{ padding: '7px !important'}} key={props?.key || null}>
       <TableCell>
         <Box className="d-flex" sx={{ alignItems: 'center', justifyContent: 'flex-start'}}>
           <Box sx={{width: '70px', height: '50px'}} >
-            <img style={{ width: '100%', height: '100%'}} src={item?.item?.image?.url} />
+            <img alt='' style={{ width: '100%', height: '100%', borderRadius: '10px'}} src={item?.item?.image?.url} />
           </Box>
           <Typography sx={{ ml: 2}}> {item?.item?.name} </Typography>
         </Box>
       </TableCell>
-      <TableCell> ₦{normalizeDigits(item.item.price)} </TableCell>
       <TableCell> {item.quantity} </TableCell>
       <TableCell> ₦{normalizeDigits(String(item.total))} </TableCell>
-      {removable && <TableCell> <IconButton onClick={() => removeFromCart(item?.id)}> <CancelIcon sx={{color: 'orangered'}} /> </IconButton> </TableCell>}
+      <TableCell sx={{ position: 'sticky', backgroundColor: '#fff', right: '0px', width: '20px'}}> <IconButton onClick={() => removeFromCart(item?.id)}> <CancelIcon sx={{color: 'orangered'}} /> </IconButton> </TableCell>
     </TableRow>
   )
 }
 
-export function OrderList({ orders, onChange, removable, ...props }){
+
+export function OrderList({ orders, onChange, containerStyle, removable, ...props }){
   return(
-    <Paper>
+    <Paper style={containerStyle}>
       <TableContainer>
-        <Table>
+        <Table sx={{ minWidth: "700px"}}>
           <TableHead>
             <TableCell> Item </TableCell>
-            <TableCell> Price </TableCell>
             <TableCell> Qty </TableCell>
             <TableCell> Sub Total </TableCell>
-            {removable && <TableCell> </TableCell>}
+            <TableCell> Action </TableCell>
           </TableHead>
 
           <TableBody>
-            {orders.map(order => <OrderListItem onChange={onChange} removable={removable||false} item={order} key={order.id} />)}
+            {orders.map(order => <OrderListItem onChange={onChange} item={order} key={order.id} />)}
           </TableBody>
         </Table>
       </TableContainer>
     </Paper>
+  )
+}
+
+
+export function OrderItem({ order, ...props }){
+  return(
+    <Box {...props.key} className={'product-card'} sx={{ mb: 5,  px: 3, py: 2, maxWidth: '320px'}}>
+
+      <Grid container className='d-flex' sx={{alignItems: 'center'}}>
+        <Typography sx={{ fontWeight: 600}}> {order?.order_id} </Typography>
+        <StyledBadge bg={order.status}>
+          {String(order?.status).toLocaleUpperCase()}
+        </StyledBadge>
+      </Grid>
+
+      <Box sx={{
+        mt: 2
+      }}>
+        
+        <Typography className='d-flex' sx={{fontWeight: 600}}> <CalendarIcon /> {order?.created_on} ago </Typography>
+        <Grid container className='d-flex' sx={{alignItems: 'center'}}>
+          <Typography sx={{my: 2, fontWeight: 600}} className='d-flex'> <MenuIcon sx={{mr: 2}} />  {order?.items.length} </Typography>
+          <Typography className='d-flex' sx={{fontWeight: 600}}> <CashIcon sx={{mr: 1}} /> {normalizeDigits(String(order?.subtotal))} </Typography>
+        </Grid>
+
+        <NavLink to={`${order.order_id}`} style={{textDecoration: 'none'}}>
+          <StyledButton variant='warning' sx={{ fontSize: 15, fontWeight: 600, mx: 0, mt: 1, px: 3}}> View Order </StyledButton>
+        </NavLink>
+      </Box>
+    </Box>
+  )
+}
+
+
+export function StyledBadge({ bg='pending', children, ...props}){
+  const BG = {
+    'pending': '#ff7907',
+    'ready': '#625df5',
+    'delivered': '#2be542',
+  }
+
+  
+  return(
+    <Badge sx={{
+      width: 'max-content',
+      background: BG[bg],
+      color: '#fff',
+      padding: '5px 12px 8px 12px',
+      margin: 0,
+      borderRadius: '30px',
+      fontWeight: 600
+    }}> {children} </Badge>
   )
 }
 

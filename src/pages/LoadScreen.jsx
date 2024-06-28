@@ -6,58 +6,48 @@ import LocalDelivery from '@mui/icons-material/LocalShipping';
 import Typography from '@mui/material/Typography';
 import GlobalStore from '../helpers/store';
 import {Page} from '../components'
+import { Helmet } from "react-helmet";
+import { Route, Routes } from 'react-router-dom';
+import PlaceScreen from './store/Layout';
 
 
 const {sessionStorage, localStorage} = window;
 
+
 export const LoadScreen = ({ ...props }) => {
-	const {redirect, notify, setUserProfile} = useContext(GlobalStore);
+	const {redirect, notify, setUserProfile, authState, getUserData} = useContext(GlobalStore);
 	const [loggedIn, setLoginState] = useState(null);
 	const [loading, setLoadingState] = useState(true);
-
-	function getUserData(){
-		let data = sessionStorage.getItem('auth-user');
-		if (data === undefined || data === null || data === ""){
-			return [false, null]
-		}
-
-		data = JSON.parse(data)
-		return [true, data]
-	}
+	const path = window.location.pathname
 
 
 	useEffect(() => {
 		async function init(){
-			const [isAuthenticated, userData] = getUserData();
-
-			if (isAuthenticated){
+			const userData = getUserData();
+			if (userData){
 				setUserProfile(userData)
-				setTimeout(() => redirect('/the-ring/'), 1000)
+				setTimeout(() => setLoginState(true), 1000)
 			}else{
-				redirect('/login?rdr_next=/the-ring/')
+				redirect(`/login?rdr_next=${path}`)
 			}
 		}
 		init();
-	}, [])
+	}, [authState])
 
 	if (loggedIn === false){
-		return(
-			<Page>
-				
-			</Page>
-		)
+		return(<Page></Page>)
 	}
 
 	if (loggedIn === true){
-
+		return(
+			<Routes>
+				<Route path="/*" element={<PlaceScreen />} />
+			</Routes>
+		)
 	}
 
 	// loggedIn === null (true) -> Page is loading...
-	return(
-		<Page>
-			
-		</Page>
-	)
+	return	(<Page></Page>)
 }
 
 
