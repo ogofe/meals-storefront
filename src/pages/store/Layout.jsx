@@ -43,7 +43,9 @@ function AppLayout({ ...params }) {
   const [deferredPrompt, setDeferredPrompt] = React.useState(null); // for pwa install
   const [notificationAccess, setNotificationAccess] = React.useState(false); // for pwa install
   // const {place, branch} = useParams();
-  const place = useSubdomain()
+  // const place = useSubdomain()
+  const place = "the-ring"
+
   const {token} = getUserData();
   const locationBarRef = useRef()
 
