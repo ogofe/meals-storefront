@@ -43,7 +43,7 @@ function AppBase() {
   console.log("Store:", window.location.hostname.split('.')[0])
 
   defaultStore = {
-    apiUrl: "http://localhost/api/places",
+    apiUrl:  `https://shagomeals.pythonanywhere.com/api/places`,
     // apiUrl: `http://192.168.43.21:80/api/places`,
     org: process.env.API_ORG,
     userProfile,
