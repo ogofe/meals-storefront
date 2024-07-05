@@ -20,6 +20,8 @@ export const StoreHomePage = ({ place, ...props }) => {
 	const isMobile = useMediaQuery('(max-width: 768px)');
 
 
+
+
 	async function getData(){
 		try{
 			const res = await axios.get(`/place/`);
@@ -41,6 +43,11 @@ export const StoreHomePage = ({ place, ...props }) => {
 			await getData();
 		}
 		init();
+		const nav = document.getElementById('navbar');
+		nav.classList.add('home')
+		return () => {
+			nav.classList.remove('home')
+		}
 	}, [])
 
 	if (loading){

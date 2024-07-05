@@ -160,14 +160,20 @@ code {
   opacity: .99;
   transition: box-shadow .3s;
   color: #000;
+  background: white;
+  color: #fff;
+  animation: fadeIn .5s forwards; 
+}
+
+.navbar.home{
   position: absolute;
   left: 0px;
   width: 99%;
   top: 0px;
   background: transparent;
-  color: #fff;
-  /* animation: fadeIn .5s forwards; */
+
 }
+
 .navbar *{
   color: #fff !important;
 }

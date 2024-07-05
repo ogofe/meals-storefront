@@ -159,7 +159,7 @@ export function Navbar({ showCart, ...props }){
 	} = React.useContext(RestaurantStore)
 	
 	return(
-		<Box className="navbar">
+		<Box id="navbar" className="navbar">
 			<Grid container sx={{ }} alignItems={'center'} justifyContent={'space-between'} wrap='nowrap'>
 				<Grid item>
 					<IconButton onClick={openSidebar}> <MenuIcon /> </IconButton>	
