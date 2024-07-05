@@ -159,13 +159,13 @@ code {
   z-index: 1410;
   opacity: .99;
   transition: box-shadow .3s;
-  color: #000;
   background: white;
-  color: #fff;
   animation: fadeIn .5s forwards; 
+  color: #000;
 }
 
 .navbar.home{
+  color: #fff;
   position: absolute;
   left: 0px;
   width: 99%;
@@ -174,7 +174,7 @@ code {
 
 }
 
-.navbar *{
+.navbar.home *{
   color: #fff !important;
 }
 
