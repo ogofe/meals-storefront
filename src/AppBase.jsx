@@ -100,11 +100,11 @@ function AppBase() {
   }
 
   return (
-    <ErrorBoundary>
+    // <ErrorBoundary>
       {/* <Helmet> */}
         {/* <meta name="description" content={"Shago meals Application"} /> */}
         {/* <link rel="manifest" href={URL.createObjectURL(new Blob([JSON.stringify(appManifest)], { type: 'application/json' }))} /> */}
-        <Page sx={{p: '0px !important'}}>
+      <Page sx={{p: '0px !important'}}>
           <GlobalStoreProvider value={defaultStore}>
           <Router>
             <Routes>
@@ -129,9 +129,9 @@ function AppBase() {
             }
           </Snackbar>
         </GlobalStoreProvider>
-        </Page>
+      </Page>
       {/* </Helmet> */}
-    </ErrorBoundary>
+    // </ErrorBoundary>
   );
 }
 
